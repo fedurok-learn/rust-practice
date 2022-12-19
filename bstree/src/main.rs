@@ -11,16 +11,16 @@ struct Node {
 }
 
 impl Node {
-  pub fn new(age: u32, name: &String) -> Node {
-    Self { age, name: name.clone(), left: Link::None, right: Link::None }
+  pub fn new<S: Into<String>>(age: u32, name: S) -> Node {
+    Self { age, name: name.into().clone(), left: Link::None, right: Link::None }
   }
 
-  pub fn link(age: u32, name: &String) -> Link {
+  pub fn link<S: Into<String>>(age: u32, name: S) -> Link {
     Link::Some(Box::new(Self::new(age, name)))
   }
 
-  pub fn equal(&self, age: u32, name: &String) -> bool {
-    self.age == age && self.name == *name
+  pub fn equal<S: Into<String>>(&self, age: u32, name: S) -> bool {
+    self.age == age && self.name == name.into()
   }
 }
 
@@ -33,11 +33,12 @@ impl Tree {
     Self { root: Link::None }
   }
 
-  pub fn with_root(age: u32, name: &String) -> Tree{
+  pub fn with_root<S: Into<String>>(age: u32, name: S) -> Tree {
     Self { root: Node::link(age, name) } 
   }
 
-  pub fn insert(&mut self, age: u32, name: &String) { 
+  pub fn insert<S: Into<String>>(&mut self, age: u32, name: S) { 
+    let name = &name.into();
     let location = Self::locate_mut(&mut self.root, age, name);
     let inserted = match location.as_ref() {
       Some(_) => false, 
@@ -50,7 +51,8 @@ impl Tree {
     if inserted { self.balance() }
   }
 
-  pub fn erase(&mut self, age: u32, name: &String) {
+  pub fn erase<S: Into<String>>(&mut self, age: u32, name: S) {
+    let name = &name.into();
     let location = Self::locate_mut(&mut self.root, age, name);
     let removed = match location.take() {
       Some(mut nd) => {
@@ -81,7 +83,8 @@ impl Tree {
   }
 
 
-  pub fn contains(&self, age: u32, name: &String) -> bool {
+  pub fn contains<S: Into<String>>(&self, age: u32, name: S) -> bool {
+    let name = &name.into();
     Self::locate(&self.root, age, name).is_some()
   }
 
@@ -146,22 +149,22 @@ impl fmt::Display for Tree  {
 
 // Exec
 fn main() {
-  let mut root = Tree::with_root(32, &"Erik".to_string());
-  root.insert(55, &"Mykola".to_string());  
-  root.insert(12, &"Crypto".to_string());  
-  root.insert(34, &"Luna".to_string());  
-  root.insert(19, &"Terra".to_string());  
-  root.insert(32, &"Victor".to_string());  
+  let mut root = Tree::with_root(32, "Erik");
+  root.insert(55, "Mykola");  
+  root.insert(12, "Crypto");  
+  root.insert(34, "Luna");  
+  root.insert(19, "Terra");  
+  root.insert(32, "Victor");  
 
   println!("{root}\n");
 
   for (age, name) in [(55, "Mykola"), (12, "Crypto"), (55, "Skola")] {
-    let contains = root.contains(age, &name.to_string());
+    let contains = root.contains(age, name);
     let msg = if contains { "contains" } else { "doesn't contain" };
     println!("Tree {} element {{{}:{}}}", msg, age, name);
   }
 
-  root.erase(55, &"Mykola".to_string()); 
+  root.erase(55, "Mykola"); 
   println!("\n{root}\n");
 
   println!("The tree is {}", if is_sorted(&root.root) { "sorted" } else { "not sorted" });
